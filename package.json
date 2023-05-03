@@ -1,0 +1,28 @@
+{
+  "name": "vrc_hyperrate_chatbox",
+  "version": "1.0.0",
+  "description": "A useful script to parse heart rate from hyperrate and put it into vrc chatbox",
+  "main": "dist/index.js",
+  "bin": "dist/index.js",
+  "author": "KotRikD",
+  "scripts": {
+    "ts:run": "ts-node --transpile-only --project tsconfig.json",
+    "track": "npm run ts:run src/index.ts"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^18.16.3",
+    "@types/node-osc": "^6.0.1",
+    "@types/ws": "^8.5.4",
+    "resedit": "^2.0.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "axios": "^1.4.0",
+    "dotenv": "^16.0.3",
+    "jsdom": "^22.0.0",
+    "node-osc": "^8.0.11",
+    "ws": "^8.13.0"
+  }
+}
