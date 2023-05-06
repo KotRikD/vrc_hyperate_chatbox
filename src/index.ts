@@ -1,12 +1,13 @@
 import { config } from './config';
 import { JSDOM } from 'jsdom';
-import axios from 'axios';
 import WebSocket from 'ws';
 import * as osc from "node-osc"
 
 async function getStartData() {
-    const htmlPage = await axios.get(config.hyperateWidgetUrl);
-    const dom = new JSDOM(htmlPage.data);
+    // @ts-ignore
+    const htmlPageRaw = await fetch(config.hyperateWidgetUrl);
+    const htmlPageSummary = await htmlPageRaw.text()
+    const dom = new JSDOM(htmlPageSummary);
 
     const csrfToken = dom.window.document.querySelector('meta[name="csrf-token"]').content;
     if (!csrfToken) {
@@ -22,7 +23,7 @@ async function getStartData() {
     const phxStatic = phxDiv[0].getAttribute("data-phx-static")
     const phxId = phxDiv[0].getAttribute("id")
 
-    const setCookie = htmlPage.headers['set-cookie']![0].split(";")
+    const setCookie = htmlPageRaw.headers.get('set-cookie')!.split(";")
     return {
         csrfToken,
         phxSession,

@@ -7,19 +7,33 @@
   "author": "KotRikD",
   "scripts": {
     "ts:run": "ts-node --transpile-only --project tsconfig.json",
-    "track": "npm run ts:run src/index.ts"
+    "track": "npm run ts:run src/index.ts",
+    "ts:compile": "ncc build src/index.ts -o dist -m -d",
+    "compile": "pkg --compress brotli . && yarn ts:run src/postBuild.ts"
+  },
+  "pkg": {
+    "scripts": "dist/**/*.js",
+    "assets": [
+      "dist/**/*.node",
+      "dist/xhr-sync-worker.js"
+    ],
+    "targets": [
+      "node18-win-x64"
+    ],
+    "outputPath": "dist"
   },
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^18.16.3",
     "@types/node-osc": "^6.0.1",
     "@types/ws": "^8.5.4",
+    "@vercel/ncc": "^0.36.1",
+    "pkg": "^5.8.1",
     "resedit": "^2.0.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "axios": "^1.4.0",
     "dotenv": "^16.0.3",
     "jsdom": "^22.0.0",
     "node-osc": "^8.0.11",

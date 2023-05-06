@@ -1,0 +1,54 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - '*'
+    tags:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+
+concurrency:
+  group: build-${{ github.ref_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest]
+
+    runs-on: "${{ matrix.os }}"
+    name: "Build on ${{ matrix.os }}"
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+
+      - name: Install Node.js 🔧
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Deps 🔧
+        run: |
+          npm ci --include=dev
+
+      - name: Compile TS 🔧
+        run: |
+          npm run ts:compile
+
+      - name: Build App 🔧
+        run: |
+          npm compile
+
+      - name: Upload Artifact (Windows)
+        if: startsWith( matrix.os, 'windows' )
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.os }}-${{ github.ref_name }}
+          path: dist/vrc_hyperrate_chatbox.exe
