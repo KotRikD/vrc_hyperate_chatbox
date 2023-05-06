@@ -44,7 +44,7 @@ jobs:
 
       - name: Build App 🔧
         run: |
-          npm compile
+          npm run compile
 
       - name: Upload Artifact (Windows)
         if: startsWith( matrix.os, 'windows' )
