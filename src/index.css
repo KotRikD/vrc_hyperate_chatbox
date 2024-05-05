@@ -1,0 +1,15 @@
+html {
+  scroll-behavior: smooth;
+}
+
+* {
+  padding: 0;
+  margin: 0;
+  font-family: sans-serif;
+
+  user-select: none; /* Standard syntax */
+}
+
+html, body {
+  width: 100%;
+}
