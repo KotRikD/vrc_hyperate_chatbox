@@ -175,7 +175,7 @@ export class HyperateMonitor {
         setTimeout(this.heartbeat, 30 * 1000);
       }
       if (jsonData[3] === "diff" && jsonData[4].e[0][0] === "new-heartbeat") {
-        const newHeartRate = jsonData[4].e[0][1].heartbeat - 15;
+        const newHeartRate = jsonData[4].e[0][1].heartbeat;
         let heartRateString = `${newHeartRate}`;
         if (this.options.isUpDownIconEnabled) {
           // replace with enable up/down icons
