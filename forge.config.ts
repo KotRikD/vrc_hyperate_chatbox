@@ -47,6 +47,18 @@ const config: ForgeConfig = {
       [FuseV1Options.OnlyLoadAppFromAsar]: true,
     }),
   ],
+  publishers: [
+    {
+      name: '@electron-forge/publisher-github',
+      config: {
+        repository: {
+          owner: 'KotRikD',
+          name: 'vrc_hyperate_chatbox'
+        },
+        prerelease: true
+      }
+    }
+  ]
 };
 
 export default config;

@@ -42,6 +42,7 @@
   "license": "MIT",
   "dependencies": {
     "@chakra-ui/react": "^2.8.2",
+    "@electron-forge/publisher-github": "^7.4.0",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
     "@types/jsdom": "^21.1.6",
