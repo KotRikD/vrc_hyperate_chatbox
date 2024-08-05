@@ -23,6 +23,7 @@ export class HyperateMonitor {
     isUpDownIconEnabled: false,
     is24HoursFormatEnabled: true,
     textFormat: "❤❤❤ {heartRate} {hours}",
+    vrcOscCompatibility: true
   };
 
   websocket: WebSocket;
@@ -206,10 +207,50 @@ export class HyperateMonitor {
             { type: "boolean", value: true },
           ],
         });
-
+        if (this.options.vrcOscCompatibility) {
+          
+          this.oscClient.send({
+            address: "/avatar/parameters/VRCOSC/Heartrate/Enabled",
+            args: [
+              {
+                type: "boolean",
+                value: true
+              }
+            ]
+          })
+          this.oscClient.send({
+            address: "/avatar/parameters/VRCOSC/Heartrate/Units",
+            args: [
+              {
+                type: "float",
+                value:  newHeartRate % 10 / 10
+              }
+            ]
+          })
+          this.oscClient.send({
+            address: "/avatar/parameters/VRCOSC/Heartrate/Tens",
+            args: [
+              {
+                type: "float",
+                value:  Math.floor((newHeartRate % 100) / 10) / 10
+              }
+            ]
+          })
+          this.oscClient.send({
+            address: "/avatar/parameters/VRCOSC/Heartrate/Hundreds",
+            args: [
+              {
+                type: "float",
+                value:  Math.floor((newHeartRate % 1000) / 100) / 10
+              }
+            ]
+          })
+        }
         console.log("New heartbeat:", newHeartRate);
       }
     });
+
+   
   }
 
   reconnectInterval() {

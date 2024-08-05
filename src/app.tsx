@@ -12,6 +12,7 @@ const root = createRoot(document.querySelector('div#js-root'));
 interface State {
     includeUpDownIcon: boolean;
     include24HourFormat: boolean;
+    vrcOscCompatibility: boolean;
 }
 
 type Actions = {
@@ -19,6 +20,9 @@ type Actions = {
     value: boolean;
 } | {
     type: 'include24HourFormat';
+    value: boolean;
+} | {
+    type: 'vrcOscCompatibility';
     value: boolean;
 }
 
@@ -34,6 +38,8 @@ function InitHyperate() {
             case 'include24HourFormat':
                 state.include24HourFormat = action.value;
                 break;
+            case 'vrcOscCompatibility':
+                state.vrcOscCompatibility = action.value;
             default:
                 // no-default
         }
@@ -41,7 +47,8 @@ function InitHyperate() {
         return state;
     }, {
         includeUpDownIcon: false,
-        include24HourFormat: false
+        include24HourFormat: false,
+        vrcOscCompatibility: true
     })
 
     const onEnterCode = useCallback((e: React.FormEvent<HTMLInputElement>) => {
@@ -84,6 +91,7 @@ function InitHyperate() {
 example: ❤❤❤ {heartRate} {clock}`} />
             <Checkbox onChange={onOptionChange('includeUpDownIcon')} defaultChecked={options.includeUpDownIcon}>Add up/down icons after rate</Checkbox>
             <Checkbox onChange={onOptionChange('include24HourFormat')} defaultChecked={options.include24HourFormat}>Use 24 hour format</Checkbox>
+            <Checkbox onChange={onOptionChange('vrcOscCompatibility')} defaultChecked={options.vrcOscCompatibility}>VRC OSC Compatibility</Checkbox>
             <Button w="320px" onClick={onSubmit}>Start</Button>
         </Flex>
     )
