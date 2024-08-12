@@ -1,6 +1,6 @@
-vrc_hyperate_chatbox
+VRC Chatbox Hyperate integration 
 ---
-just tool to send your hyperate heartrate through OSC intro vrchat chatbox<br/><br/>
+Just a tool to send your [Hyperate](https://hyperate.io/) (free alternative of pulsoid for twitch streamers) heartrate through OSC intro vrchat chatbox<br/><br/>
 If this util was helpful for you, [please buy me some coffee](https://boosty.to/kotrik/donate)!\
 \
 To use this thing, [download it](https://github.com/kotrikD/vrc_hyperate_chatbox/releases/latest), install and just run!
