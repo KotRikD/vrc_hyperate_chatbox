@@ -4,6 +4,7 @@ import * as osc from "node-osc";
 import { TypedEventEmitter } from "./typedEventEmitter";
 import { StartHyperateMonitorParams } from "src/types";
 import { format } from "date-fns/format";
+import { debouncedSkip } from "../utils";
 
 interface HyperateMonitorEventsMap {
   "monitor-connected": {};
@@ -42,6 +43,7 @@ export class HyperateMonitor {
 
     this.reconnectInterval = this.reconnectInterval.bind(this);
     this.heartbeat = this.heartbeat.bind(this);
+    this.sendChatboxMessage = debouncedSkip(this.sendChatboxMessage.bind(this), 3000) // 3 sec before next call
   }
 
   get hyperateUrl() {
@@ -177,7 +179,13 @@ export class HyperateMonitor {
       }
       if (jsonData[3] === "diff" && jsonData[4].e[0][0] === "new-heartbeat") {
         const newHeartRate = jsonData[4].e[0][1].heartbeat;
+        
+        if (newHeartRate === 0) {
+          return;
+        }
+
         let heartRateString = `${newHeartRate}`;
+        
         if (this.options.isUpDownIconEnabled) {
           // replace with enable up/down icons
           if (newHeartRate > this.previousHeartRate) {
@@ -189,68 +197,26 @@ export class HyperateMonitor {
         
         this.heartbeatUpdated(newHeartRate);
         this.previousHeartRate = newHeartRate;
-        this.oscClient.send({
-          address: "/chatbox/input",
-          args: [
-            {
-              type: "string",
-              value: this.options.textFormat
-                .replace("{heartRate}", heartRateString)
-                .replace(
-                  "{clock}",
-                  format(
-                    new Date(),
-                    this.options.is24HoursFormatEnabled ? "HH:mm" : "p"
-                  )
-                ),
-            },
-            { type: "boolean", value: true },
-          ],
-        });
+
+        this.sendChatboxMessage(
+            this.options.textFormat
+              .replace("{heartRate}", heartRateString)
+              .replace(
+                "{clock}",
+                format(
+                  new Date(),
+                  this.options.is24HoursFormatEnabled ? "HH:mm" : "p"
+                )
+              )
+        )
+  
         if (this.options.vrcOscCompatibility) {
-          
-          this.oscClient.send({
-            address: "/avatar/parameters/VRCOSC/Heartrate/Enabled",
-            args: [
-              {
-                type: "boolean",
-                value: true
-              }
-            ]
-          })
-          this.oscClient.send({
-            address: "/avatar/parameters/VRCOSC/Heartrate/Units",
-            args: [
-              {
-                type: "float",
-                value:  newHeartRate % 10 / 10
-              }
-            ]
-          })
-          this.oscClient.send({
-            address: "/avatar/parameters/VRCOSC/Heartrate/Tens",
-            args: [
-              {
-                type: "float",
-                value:  Math.floor((newHeartRate % 100) / 10) / 10
-              }
-            ]
-          })
-          this.oscClient.send({
-            address: "/avatar/parameters/VRCOSC/Heartrate/Hundreds",
-            args: [
-              {
-                type: "float",
-                value:  Math.floor((newHeartRate % 1000) / 100) / 10
-              }
-            ]
-          })
+          this.sendVRCOscHeart(newHeartRate)
         }
+
         console.log("New heartbeat:", newHeartRate);
       }
     });
-
-   
   }
 
   reconnectInterval() {
@@ -287,5 +253,57 @@ export class HyperateMonitor {
 
   heartbeatUpdated(newHeartRate: number) {
     this.eventEmitter.emit("heartrate-update", newHeartRate);
+  }
+
+  sendChatboxMessage(message: string) {
+    this.oscClient.send({
+      address: "/chatbox/input",
+      args: [
+        {
+          type: "string",
+          value: message,
+        },
+        { type: "boolean", value: true },
+      ],
+    });
+  }
+
+  sendVRCOscHeart(newHeartRate: number) {
+    this.oscClient.send({
+      address: "/avatar/parameters/VRCOSC/Heartrate/Enabled",
+      args: [
+        {
+          type: "boolean",
+          value: true
+        }
+      ]
+    })
+    this.oscClient.send({
+      address: "/avatar/parameters/VRCOSC/Heartrate/Units",
+      args: [
+        {
+          type: "float",
+          value:  newHeartRate % 10 / 10
+        }
+      ]
+    })
+    this.oscClient.send({
+      address: "/avatar/parameters/VRCOSC/Heartrate/Tens",
+      args: [
+        {
+          type: "float",
+          value:  Math.floor((newHeartRate % 100) / 10) / 10
+        }
+      ]
+    })
+    this.oscClient.send({
+      address: "/avatar/parameters/VRCOSC/Heartrate/Hundreds",
+      args: [
+        {
+          type: "float",
+          value:  Math.floor((newHeartRate % 1000) / 100) / 10
+        }
+      ]
+    })
   }
 }

@@ -115,9 +115,9 @@ function ConnectedHyperate() {
     }, [])
 
     return (
-        <Flex w="100%" direction="column" alignItems="center" justifyContent="center" mt={4} mb={4} gap={2}>
+        <Flex w="100%" h="100%" direction="column" alignItems="center" justifyContent="center" gap={2}>
             <Flex w="100%" direction="row" alignItems="center" justifyContent="center" gap="10px">
-                <Text fontWeight={600} fontSize={24}>
+                <Text fontWeight={600} fontSize={52}>
                     {!heartRate ? '--' : `${heartRate}`} BPM
                 </Text>
                 <Image className="heart-pulsate" src={HeartPulse} w="48px" h="48px"/>

@@ -10,6 +10,7 @@ html {
   user-select: none; /* Standard syntax */
 }
 
-html, body {
+html, body, div#js-root {
   width: 100%;
+  height: 280px;
 }
