@@ -4,5 +4,7 @@ export interface StartHyperateMonitorParams {
     options: {
         includeUpDownIcon: boolean;
         include24HourFormat: boolean;
+        vrcOscCompatibility: boolean;
+        vrcHrOscCompatibility: boolean;
     }
 }

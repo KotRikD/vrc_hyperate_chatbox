@@ -24,7 +24,8 @@ export class HyperateMonitor {
     isUpDownIconEnabled: false,
     is24HoursFormatEnabled: true,
     textFormat: "❤❤❤ {heartRate} {hours}",
-    vrcOscCompatibility: true
+    vrcOscCompatibility: true,
+    vrcHrOscCompatibility: true
   };
 
   websocket: WebSocket;
@@ -198,7 +199,8 @@ export class HyperateMonitor {
         this.heartbeatUpdated(newHeartRate);
         this.previousHeartRate = newHeartRate;
 
-        this.sendChatboxMessage(
+        if (this.options.textFormat.length) {
+          this.sendChatboxMessage(
             this.options.textFormat
               .replace("{heartRate}", heartRateString)
               .replace(
@@ -208,10 +210,15 @@ export class HyperateMonitor {
                   this.options.is24HoursFormatEnabled ? "HH:mm" : "p"
                 )
               )
-        )
-  
+          )
+        }
+
         if (this.options.vrcOscCompatibility) {
           this.sendVRCOscHeart(newHeartRate)
+        }
+
+        if (this.options.vrcHrOscCompatibility) {
+          this.sendHrOscHeart(newHeartRate);
         }
 
         console.log("New heartbeat:", newHeartRate);
@@ -229,22 +236,29 @@ export class HyperateMonitor {
     newOptions: StartHyperateMonitorParams['options'],
     formattedString?: string
   ) {
-    if (formattedString) {
-      this.options.textFormat = formattedString;
-    }
-    console.log(newOptions);
+    console.log("Options to start monitor with:", newOptions);
+    
+    this.options.textFormat = typeof formattedString === 'string' && formattedString !== null ? formattedString : '';
 
     this.options.isUpDownIconEnabled = newOptions.includeUpDownIcon;
     this.options.is24HoursFormatEnabled =
       newOptions.include24HourFormat;
+    this.options.vrcOscCompatibility = newOptions.vrcOscCompatibility;
+    this.options.vrcHrOscCompatibility = newOptions.vrcHrOscCompatibility;
   }
 
   monitorConnected() {
     this.eventEmitter.emit("monitor-connected", {});
+    if (this.options.vrcHrOscCompatibility) {
+      this.sendHrOscEnabled(true);
+    }
   }
 
   monitorStopped() {
     this.eventEmitter.emit("monitor-stopped", {});
+    if (this.options.vrcHrOscCompatibility) {
+      this.sendHrOscEnabled(false);
+    }
   }
 
   heartbeatSent() {
@@ -302,6 +316,31 @@ export class HyperateMonitor {
         {
           type: "float",
           value:  Math.floor((newHeartRate % 1000) / 100) / 10
+        }
+      ]
+    })
+  }
+
+  sendHrOscHeart(newHeartRate: number) {
+    this.oscClient.send({
+      address: "/avatar/parameters/hr_percent",
+      args: [
+        {
+          type: "float",
+          // newHeartRate / max_heartrate (i guess 200 is enough for most people.... yeah?)
+          value: newHeartRate / 200
+        }
+      ]
+    })
+  }
+
+  sendHrOscEnabled(state: boolean) {
+    this.oscClient.send({
+      address: "/avatar/parameters/hr_connected",
+      args: [
+        {
+          type: "boolean",
+          value: state
         }
       ]
     })

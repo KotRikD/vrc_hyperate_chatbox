@@ -13,6 +13,7 @@ interface State {
     includeUpDownIcon: boolean;
     include24HourFormat: boolean;
     vrcOscCompatibility: boolean;
+    vrcHrOscCompatibility: boolean;
 }
 
 type Actions = {
@@ -23,6 +24,9 @@ type Actions = {
     value: boolean;
 } | {
     type: 'vrcOscCompatibility';
+    value: boolean;
+} | {
+    type: 'vrcHrOscCompatibility';
     value: boolean;
 }
 
@@ -40,6 +44,10 @@ function InitHyperate() {
                 break;
             case 'vrcOscCompatibility':
                 state.vrcOscCompatibility = action.value;
+                break;
+            case 'vrcHrOscCompatibility': 
+                state.vrcHrOscCompatibility = action.value;
+                break;
             default:
                 // no-default
         }
@@ -48,7 +56,8 @@ function InitHyperate() {
     }, {
         includeUpDownIcon: false,
         include24HourFormat: false,
-        vrcOscCompatibility: true
+        vrcOscCompatibility: true,
+        vrcHrOscCompatibility: false,
     })
 
     const onEnterCode = useCallback((e: React.FormEvent<HTMLInputElement>) => {
@@ -92,6 +101,7 @@ example: ❤❤❤ {heartRate} {clock}`} />
             <Checkbox onChange={onOptionChange('includeUpDownIcon')} defaultChecked={options.includeUpDownIcon}>Add up/down icons after rate</Checkbox>
             <Checkbox onChange={onOptionChange('include24HourFormat')} defaultChecked={options.include24HourFormat}>Use 24 hour format</Checkbox>
             <Checkbox onChange={onOptionChange('vrcOscCompatibility')} defaultChecked={options.vrcOscCompatibility}>VRC OSC Compatibility</Checkbox>
+            <Checkbox onChange={onOptionChange('vrcHrOscCompatibility')} defaultChecked={options.vrcHrOscCompatibility}>VRC HrOSC Compatibility</Checkbox>
             <Button w="320px" onClick={onSubmit}>Start</Button>
         </Flex>
     )
