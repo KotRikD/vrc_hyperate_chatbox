@@ -4,6 +4,10 @@ Just a tool to send your [Hyperate](https://hyperate.io/) (free alternative of p
 If this util was helpful for you, [please buy me some coffee](https://boosty.to/kotrik/donate)!\
 \
 To use this thing, [download it](https://github.com/kotrikD/vrc_hyperate_chatbox/releases/latest), install and just run!
+\
+Also support:
+- VRCOSC Heartrate prefab
+- HrOSC Heartrate prefab (that heart with sound)
 
 Little Demo
 ---
