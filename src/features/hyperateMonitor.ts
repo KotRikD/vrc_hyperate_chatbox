@@ -315,7 +315,16 @@ export class HyperateMonitor {
       args: [
         {
           type: "float",
-          value:  Math.floor((newHeartRate % 1000) / 100) / 10
+          value:  Math.floor((newHeartRate) / 100)
+        }
+      ]
+    })
+    this.oscClient.send({
+      address: "/avatar/parameters/VRCOSC/Heartrate/Normalised",
+      args: [
+        {
+          type: "float",
+          value:  newHeartRate / 200
         }
       ]
     })
