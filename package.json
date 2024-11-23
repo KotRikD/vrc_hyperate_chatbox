@@ -1,7 +1,7 @@
 {
   "name": "vrc_hyperrate_v2",
   "productName": "VRC OSC Hyperate Integration",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "A simple implementation hyperate for VRC OSC",
   "main": ".vite/build/main.js",
   "scripts": {
