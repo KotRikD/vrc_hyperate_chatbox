@@ -14,5 +14,5 @@ export function debouncedSkip<T extends Function>(cb: T, wait = 20) {
             cb(...args);
         }, wait);
     };
-    return <T>(<any>callable);
+    return callable as unknown as T;
 }

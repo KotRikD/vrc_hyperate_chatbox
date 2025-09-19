@@ -1,10 +1,111 @@
-
 .heart-pulsate {
-    animation: heart-pulsate-animation .9375s ease-in-out infinite;
+    animation: heart-pulsate-animation 1.2s ease-in-out infinite;
+    filter: drop-shadow(0 0 10px rgba(230, 0, 0, 0.3));
+    transition: filter 0.3s ease;
+}
+
+.heart-pulsate:hover {
+    filter: drop-shadow(0 0 15px rgba(230, 0, 0, 0.6));
 }
 
 @keyframes heart-pulsate-animation {
-    0%   { transform: scale(1.0); }
-    20%  { transform: scale(1.2); }
-    100% { transform: scale(1.0); }
+    0% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 10px rgba(230, 0, 0, 0.3));
+    }
+    15% {
+        transform: scale(1.15);
+        filter: drop-shadow(0 0 20px rgba(230, 0, 0, 0.6));
+    }
+    30% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 10px rgba(230, 0, 0, 0.3));
+    }
+    45% {
+        transform: scale(1.08);
+        filter: drop-shadow(0 0 15px rgba(230, 0, 0, 0.5));
+    }
+    60% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 10px rgba(230, 0, 0, 0.3));
+    }
+    100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 10px rgba(230, 0, 0, 0.3));
+    }
+}
+
+/* Custom Title Bar Styles */
+.titlebar {
+    -webkit-app-region: drag;
+    user-select: none;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+.titlebar-button {
+    -webkit-app-region: no-drag;
+}
+
+/* Heart pulse animation for titlebar */
+.heart-pulse-titlebar {
+    animation: heart-pulse-titlebar-animation 1.5s ease-in-out infinite;
+}
+
+@keyframes heart-pulse-titlebar-animation {
+    0% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 6px rgba(230, 0, 0, 0.4));
+    }
+    50% {
+        transform: scale(1.1);
+        filter: drop-shadow(0 0 12px rgba(230, 0, 0, 0.8));
+    }
+    100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 6px rgba(230, 0, 0, 0.4));
+    }
+}
+
+/* Modern macOS-like window controls */
+.window-control {
+    transition: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.window-control:hover {
+    transform: scale(1.15);
+    filter: brightness(1.1);
+}
+
+.window-control:active {
+    transform: scale(0.95);
+}
+
+/* Glassmorphism effect for titlebar */
+.titlebar::before {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.05) 0%,
+        rgba(255, 255, 255, 0.1) 50%,
+        rgba(255, 255, 255, 0.05) 100%
+    );
+}
+
+/* Custom Scrollbar for main content */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
 }
