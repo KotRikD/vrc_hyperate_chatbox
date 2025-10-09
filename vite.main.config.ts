@@ -25,7 +25,9 @@ export default defineConfig((env) => {
             }
         },
         plugins: [pluginHotRestart('restart')],
-        define,
+        define: mergeConfig(define, {
+            __HYPERATE_API_KEY__: JSON.stringify(process.env.HYPERRATE_API_KEY || '')
+        }),
         resolve: {
             // Load the Node.js entry.
             mainFields: ['module', 'jsnext:main', 'jsnext']

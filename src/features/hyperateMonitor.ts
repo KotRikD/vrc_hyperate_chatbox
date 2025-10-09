@@ -51,7 +51,7 @@ export class HyperateMonitor {
     }
 
     get hyperrateSocket() {
-        return `wss://app.hyperate.io/socket/websocket?token=${process.env.HYPERRATE_API_KEY}`;
+        return `wss://app.hyperate.io/socket/websocket?token=${__HYPERATE_API_KEY__}`;
     }
 
     start() {
