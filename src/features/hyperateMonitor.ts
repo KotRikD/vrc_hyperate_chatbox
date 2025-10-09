@@ -1,5 +1,4 @@
 import { format } from 'date-fns/format';
-import { JSDOM } from 'jsdom';
 import * as osc from 'node-osc';
 import WebSocket from 'ws';
 
@@ -36,7 +35,7 @@ export class HyperateMonitor {
     reconnectIntervalId: NodeJS.Timeout = null;
 
     /* CONSTANT! */
-    previousBeat: number = 5;
+    previousRef: number = 0;
     previousHeartRate: number = 0;
 
     constructor() {
@@ -51,8 +50,8 @@ export class HyperateMonitor {
         ); // 3 sec before next call
     }
 
-    get hyperateUrl() {
-        return `https://app.hyperate.io/${this.code}`;
+    get hyperrateSocket() {
+        return `wss://app.hyperate.io/socket/websocket?token=${process.env.HYPERRATE_API_KEY}`;
     }
 
     start() {
@@ -89,93 +88,43 @@ export class HyperateMonitor {
         }
 
         this.websocket.send(
-            JSON.stringify([
-                null,
-                `${this.previousBeat}`,
-                'phoenix',
-                'heartbeat',
-                {}
-            ])
+            JSON.stringify({
+                "topic": "phoenix",
+                "event": "heartbeat",
+                "payload": {},
+                "ref": this.previousRef
+            })
         );
-        this.previousBeat += 1;
+        this.previousRef += 1;
         this.heartbeatSent();
     }
-
-    async getStartData() {
-        // @ts-ignore
-        const htmlPageRaw = await fetch(this.hyperateUrl);
-        const htmlPageSummary = await htmlPageRaw.text();
-        const dom = new JSDOM(htmlPageSummary);
-
-        const csrfToken = dom.window.document.querySelector(
-            'meta[name="csrf-token"]'
-            // @ts-ignore
-        ).content;
-        if (!csrfToken) {
-            throw new Error('no csrf token');
-        }
-
-        const phxDiv = dom.window.document.querySelectorAll('[data-phx-main]');
-        if (phxDiv.length < 1) {
-            throw new Error('no phx div');
-        }
-
-        const phxSession = phxDiv[0].getAttribute('data-phx-session');
-        const phxStatic = phxDiv[0].getAttribute('data-phx-static');
-        const phxId = phxDiv[0].getAttribute('id');
-
-        const setCookie = htmlPageRaw.headers.get('set-cookie')!.split(';');
-        return {
-            csrfToken,
-            phxSession,
-            phxStatic,
-            phxId,
-            hyperrateKey: setCookie[0]
-        };
-    }
-
-    // wss://app.hyperate.io/live/websocket?_csrf_token=<csrf-token>&_mounts=0&vsn=2.0.0
     async openConnection() {
         console.log('>>> Starting hyperate monitor');
-        this.previousBeat = 5;
+        this.previousRef = 1;
 
-        const startData = await this.getStartData();
+        let wsInterval: NodeJS.Timeout | undefined;
+
         this.websocket = new WebSocket(
-            `wss://app.hyperate.io/live/websocket?_csrf_token=${startData.csrfToken}&_mounts=0&vsn=2.0.0`,
+            this.hyperrateSocket,
             {
                 headers: {
-                    Cookie: startData.hyperrateKey
+                    "user-agent": "VRCHyperateMonitor/1.0"
                 }
             }
         );
 
         this.websocket.on('open', () => {
             this.websocket.send(
-                JSON.stringify([
-                    '4',
-                    '4',
-                    `lv:${startData.phxId}`,
-                    'phx_join',
-                    {
-                        params: {
-                            _csrf_token: startData.csrfToken,
-                            _mounts: 0
-                        },
-                        session: startData.phxSession,
-                        static: startData.phxStatic,
-                        url: this.hyperateUrl
-                    }
-                ])
+                JSON.stringify({topic: `hr:${this.code}`, event: "phx_join", payload: {}, ref: this.previousRef})
             );
             this.isConnected = true;
 
             console.log('>>> hyperate connected');
             this.monitorConnected();
-            setTimeout(this.heartbeat, 30 * 1000);
         });
 
         this.websocket.on('error', (error) => {
-            console.error(error);
+            console.log("error ->", error);
             this.eventEmitter.emit('monitor-error', error.message);
             this.monitorStopped();
             this.isConnected = false;
@@ -184,20 +133,20 @@ export class HyperateMonitor {
         this.websocket.on('close', () => {
             this.isConnected = false;
             this.monitorStopped();
-        });
+            clearInterval(wsInterval);
+;        });
 
         this.websocket.on('message', (data: any) => {
             const jsonData = JSON.parse(data);
-            if (jsonData[3] === 'phx_reply') {
-                setTimeout(this.heartbeat, 30 * 1000);
-            }
-            if (
-                jsonData[3] === 'diff' &&
-                jsonData[4].e[0][0] === 'new-heartbeat'
-            ) {
-                const newHeartRate = jsonData[4].e[0][1].heartbeat;
 
-                if (newHeartRate === 0) {
+            if (jsonData.event === 'phx_reply' && jsonData.payload.status === 'ok' && jsonData.topic === `hr:${this.code}`) {
+                /* We're connected, now we need to send heartbeat to socket each 10 seconds (I will send in 5, just for sure) */
+                wsInterval = setInterval(this.heartbeat, 10 * 1000);
+            }
+            if (jsonData.event === 'hr_update') {
+                const newHeartRate = jsonData.payload.hr;
+
+                if (newHeartRate === 0 || newHeartRate === this.previousHeartRate) {
                     return;
                 }
 

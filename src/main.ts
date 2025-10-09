@@ -1,12 +1,16 @@
 import { BrowserWindow, app, ipcMain } from 'electron';
 import path from 'path';
-
+import dotenv from 'dotenv';
 import { HyperateMonitor } from './features/hyperateMonitor';
 import { StartHyperateMonitorParams } from './utils/types';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
     app.quit();
+}
+
+if (process.env.NODE_ENV !== 'production') {
+    dotenv.config();
 }
 
 const createWindow = () => {
@@ -26,9 +30,6 @@ const createWindow = () => {
         maximizable: false
     });
 
-    monitor.eventEmitter.on('heartbeat-sent', () =>
-        mainWindow.webContents.send('monitor-connected', {})
-    );
     monitor.eventEmitter.on('monitor-connected', () =>
         mainWindow.webContents.send('monitor-connected', {})
     );
