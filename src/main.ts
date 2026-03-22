@@ -1,6 +1,7 @@
+import dotenv from 'dotenv';
 import { BrowserWindow, app, ipcMain } from 'electron';
 import path from 'path';
-import dotenv from 'dotenv';
+
 import { HyperateMonitor } from './features/hyperateMonitor';
 import { StartHyperateMonitorParams } from './utils/types';
 

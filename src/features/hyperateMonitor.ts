@@ -7,18 +7,21 @@ import { StartHyperateMonitorParams } from '../utils/types';
 import { TypedEventEmitter } from './typedEventEmitter';
 
 interface HyperateMonitorEventsMap {
-    'monitor-connected': {};
-    'monitor-stopped': {};
+    'monitor-connected': object;
+    'monitor-stopped': object;
     'monitor-error': string;
 
-    'heartbeat-sent': {};
+    'heartbeat-sent': object;
     'heartrate-update': number;
 }
 
+const HR_REF = '1';
+
 export class HyperateMonitor {
-    code: string = '';
-    isConnected: boolean = false;
-    isGlobalStop: boolean = false;
+    code = '';
+    isConnected = false;
+    isGlobalStop = false;
+    previousHeartRate = 0;
 
     options = {
         isUpDownIconEnabled: false,
@@ -34,10 +37,6 @@ export class HyperateMonitor {
 
     reconnectIntervalId: NodeJS.Timeout = null;
 
-    /* CONSTANT! */
-    previousRef: number = 0;
-    previousHeartRate: number = 0;
-
     constructor() {
         this.oscClient = new osc.Client('localhost', 9000);
         this.eventEmitter = new TypedEventEmitter<HyperateMonitorEventsMap>();
@@ -51,7 +50,7 @@ export class HyperateMonitor {
     }
 
     get hyperrateSocket() {
-        return `wss://app.hyperate.io/socket/websocket?token=${__HYPERATE_API_KEY__}`;
+        return `wss://app.hyperate.io/ws/${encodeURIComponent(this.code)}?token=${encodeURIComponent(__HYPERATE_API_KEY__)}`;
     }
 
     start() {
@@ -89,33 +88,33 @@ export class HyperateMonitor {
 
         this.websocket.send(
             JSON.stringify({
-                "topic": "phoenix",
-                "event": "heartbeat",
-                "payload": {},
-                "ref": this.previousRef
+                topic: 'phoenix',
+                event: 'heartbeat',
+                payload: {},
+                ref: HR_REF
             })
         );
-        this.previousRef += 1;
         this.heartbeatSent();
     }
     async openConnection() {
         console.log('>>> Starting hyperate monitor');
-        this.previousRef = 1;
 
         let wsInterval: NodeJS.Timeout | undefined;
 
-        this.websocket = new WebSocket(
-            this.hyperrateSocket,
-            {
-                headers: {
-                    "user-agent": "VRCHyperateMonitor/1.0"
-                }
+        this.websocket = new WebSocket(this.hyperrateSocket, {
+            headers: {
+                'user-agent': 'VRCHyperateMonitor/1.0'
             }
-        );
+        });
 
         this.websocket.on('open', () => {
             this.websocket.send(
-                JSON.stringify({topic: `hr:${this.code}`, event: "phx_join", payload: {}, ref: this.previousRef})
+                JSON.stringify({
+                    topic: `hr:${this.code}`,
+                    event: 'phx_join',
+                    payload: {},
+                    ref: HR_REF
+                })
             );
             this.isConnected = true;
 
@@ -124,7 +123,7 @@ export class HyperateMonitor {
         });
 
         this.websocket.on('error', (error) => {
-            console.log("error ->", error);
+            console.log('error ->', error);
             this.eventEmitter.emit('monitor-error', error.message);
             this.monitorStopped();
             this.isConnected = false;
@@ -134,19 +133,30 @@ export class HyperateMonitor {
             this.isConnected = false;
             this.monitorStopped();
             clearInterval(wsInterval);
-;        });
+        });
 
         this.websocket.on('message', (data: any) => {
             const jsonData = JSON.parse(data);
 
-            if (jsonData.event === 'phx_reply' && jsonData.payload.status === 'ok' && jsonData.topic === `hr:${this.code}`) {
-                /* We're connected, now we need to send heartbeat to socket each 10 seconds (I will send in 5, just for sure) */
-                wsInterval = setInterval(this.heartbeat, 10 * 1000);
+            console.log(jsonData);
+
+            if (
+                jsonData.event === 'phx_reply' &&
+                jsonData.payload.status === 'ok' &&
+                jsonData.topic === `hr:${this.code}`
+            ) {
+                /**
+                 * Sending heartbeat each 15 seconds, to being online
+                 */
+                wsInterval = setInterval(this.heartbeat, 15 * 1000);
             }
             if (jsonData.event === 'hr_update') {
                 const newHeartRate = jsonData.payload.hr;
 
-                if (newHeartRate === 0 || newHeartRate === this.previousHeartRate) {
+                if (
+                    newHeartRate === 0 ||
+                    newHeartRate === this.previousHeartRate
+                ) {
                     return;
                 }
 

@@ -1,3 +1,4 @@
+import dotenv from 'dotenv';
 import type { ConfigEnv, UserConfig } from 'vite';
 import { defineConfig, mergeConfig } from 'vite';
 
@@ -7,6 +8,10 @@ import {
     getBuildDefine,
     pluginHotRestart
 } from './vite.base.config';
+
+if (process.env.NODE_ENV !== 'production') {
+    dotenv.config();
+}
 
 // https://vitejs.dev/config
 export default defineConfig((env) => {
@@ -26,7 +31,9 @@ export default defineConfig((env) => {
         },
         plugins: [pluginHotRestart('restart')],
         define: mergeConfig(define, {
-            __HYPERATE_API_KEY__: JSON.stringify(process.env.HYPERRATE_API_KEY || '')
+            __HYPERATE_API_KEY__: JSON.stringify(
+                process.env.HYPERRATE_API_KEY || ''
+            )
         }),
         resolve: {
             // Load the Node.js entry.
